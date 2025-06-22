@@ -1,6 +1,10 @@
 #include <iostream>
 #include <raylib.h>
 
+using namespace std;
+
+int player_score = 0;
+
 class Ball {
 public:
   float x, y;
@@ -48,8 +52,6 @@ public:
   }
 };
 
-using namespace std;
-
 Player player;
 Ball ball;
 
@@ -81,6 +83,15 @@ int main() {
     // Updating
     ball.updateBall();
     player.updatePaddle();
+
+    // Check for Collisions
+
+    // Player
+    if (CheckCollisionCircleRec(
+            Vector2{ball.x, ball.y}, ball.radius,
+            Rectangle{player.x, player.y, player.width, player.height})) {
+      ball.speed_y *= -1;
+    }
 
     BeginDrawing();
 
