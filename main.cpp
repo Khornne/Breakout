@@ -1,9 +1,25 @@
 #include <iostream>
 #include <raylib.h>
+#include <vector>
 
 using namespace std;
 
+/* GLOBAL VARIABLES */
 int player_score = 0;
+int player_life = 5;
+bool gameOver = false;
+bool gameWon = false;
+
+/* Bricks */
+// Define numbers of Rows and Columns of bricks
+const int NUM_ROWS = 6;
+const int NUM_COLS = 22;
+
+// Define bricks dimensions
+const int BRICK_WIDTH = 50;
+const int BRICK_HEIGHT = 20;
+
+vector<Rectangle> bricks;
 
 class Ball {
 public:
@@ -17,12 +33,21 @@ public:
     x += speed_x;
     y += speed_y;
 
-    if (y + radius >= GetScreenHeight() || y - radius <= 0) {
+    if (y + radius >= GetScreenHeight()) {
+      player_score++;
+      resetBall();
+    }
+    if (y <= 0) {
       speed_y *= -1;
     }
     if (x + radius >= GetScreenWidth() || x - radius <= 0) {
       speed_x *= -1;
     }
+  }
+
+  void resetBall() {
+    y = GetScreenHeight() / 2;
+    player_life--;
   }
 };
 
@@ -33,7 +58,7 @@ public:
   float width, height;
   int speed;
 
-  void drawPaddle() { DrawRectangle(x, y, width, height, WHITE); }
+  void drawPaddle() { DrawRectangle(x, y, width, height, RED); }
 
   void updatePaddle() {
     if (IsKeyDown(KEY_A)) {
@@ -52,6 +77,27 @@ public:
   }
 };
 
+void InitBricks() {
+  bricks.clear();
+
+  for (int i = 0; i < NUM_ROWS; i++) {
+    for (int j = 0; j < NUM_COLS; j++) {
+      // Create rectangle object and set it's properties
+      Rectangle brick = {static_cast<float>(j * (BRICK_WIDTH + 5) + 40),
+                         static_cast<float>(i * (BRICK_HEIGHT + 5) + 40),
+                         BRICK_WIDTH, BRICK_HEIGHT};
+
+      bricks.push_back(brick);
+    }
+  }
+}
+
+void drawBricks() {
+  for (const auto &brick : bricks) {
+    DrawRectangleRec(brick, RED);
+  }
+}
+
 Player player;
 Ball ball;
 
@@ -64,7 +110,7 @@ int main() {
   SetTargetFPS(60);
 
   // Player Paddle
-  player.width = 100;
+  player.width = 125;
   player.height = 15;
   player.x = screen_height - player.height - 10;
   player.y = screen_width / 2 - player.width / 2;
@@ -76,6 +122,9 @@ int main() {
   ball.y = screen_height / 2;
   ball.speed_x = 5;
   ball.speed_y = 5;
+
+  // Bricks
+  InitBricks();
 
   // Main Loop
   while (!WindowShouldClose()) {
@@ -95,10 +144,18 @@ int main() {
 
     BeginDrawing();
 
-    // Drawing
+    /* Drawing */
     ClearBackground(BLACK);
     ball.drawBall();
     player.drawPaddle();
+    drawBricks();
+
+    /* GUI TEXT */
+
+    // Player Life Text
+    DrawText(TextFormat("Lives: %i", player_life), 3 * screen_width / 4 - 20,
+             700, 25, WHITE);
+
     EndDrawing();
   }
   CloseWindow();
